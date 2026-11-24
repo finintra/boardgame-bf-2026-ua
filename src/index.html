@@ -464,6 +464,7 @@
       blackweekPercent: 15,
       rawItems: [],
       updatedAt: null,
+      storeStatuses: [],
       isLive: false
     };
 
@@ -684,8 +685,10 @@
       grid.innerHTML = games.map((game, idx) => {
         const w = game.winner;
         const storeMeta = STORES_META[w.storeKey] || { badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dotClass: 'bg-emerald-400' };
-        const fallbackImg = `https://placehold.co/420x520/141923/fbbf24?text=${encodeURIComponent(game.displayTitle.slice(0, 26))}`;
+        const fallbackImg = `https://placehold.co/420x520/141923/fbbf24?text=${encodeURIComponent(game.displayTitle.slice(0, 26)).replace(/'/g, '%27')}`;
         const boxImage = game.image || fallbackImg;
+        // Назви, адреси й картинки приходять із зовнішніх сайтів — екрануємо перед вставкою в HTML
+        const safeTitle = escapeAttr(game.displayTitle);
         const accordionId = `alt-stores-${idx}`;
 
         const alternativesHtml = game.alternatives.length > 0 ? `
@@ -697,9 +700,9 @@
             </button>
             <div id="${accordionId}" class="hidden space-y-1.5 pt-2">
               ${game.alternatives.map(alt => `
-                <a href="${alt.url}" target="_blank" rel="noopener noreferrer"
+                <a href="${escapeAttr(alt.url)}" target="_blank" rel="noopener noreferrer"
                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-graphite-950/80 hover:bg-graphite-800 border border-ink/5 text-xs transition">
-                  <span class="truncate text-gray-300 pr-2">${alt.storeName}</span>
+                  <span class="truncate text-gray-300 pr-2">${escapeText(alt.storeName)}</span>
                   <span class="shrink-0 font-bold text-gray-200">${formatUah(alt.finalPrice)} <span class="text-[10px] text-gray-500">(-${alt.discountPercent}%)</span></span>
                 </a>
               `).join('')}
@@ -712,8 +715,8 @@
             <div>
               <!-- Box Art Image Header -->
               <div class="relative aspect-[4/4.3] bg-graphite-950 overflow-hidden flex items-center justify-center p-4">
-                <img src="${boxImage}"
-                     alt="${game.displayTitle}"
+                <img src="${escapeAttr(boxImage)}"
+                     alt="${safeTitle}"
                      loading="lazy"
                      onerror="this.onerror=null;this.src='${fallbackImg}';"
                      class="max-h-full max-w-full object-contain rounded-lg shadow-2xl group-hover:scale-[1.03] transition-transform duration-300" />
@@ -733,8 +736,8 @@
 
               <!-- Game Title & Winner Block -->
               <div class="p-4 space-y-3">
-                <h2 class="text-base font-extrabold text-ink leading-snug line-clamp-2 min-h-[2.75rem]" title="${game.displayTitle}">
-                  ${game.displayTitle}
+                <h2 class="text-base font-extrabold text-ink leading-snug line-clamp-2 min-h-[2.75rem]" title="${safeTitle}">
+                  ${safeTitle}
                 </h2>
 
                 <!-- Winning Store Highlight -->
@@ -744,7 +747,7 @@
                       ★ Найкраща ціна в
                     </span>
                     <span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${storeMeta.badgeClass}">
-                      ${w.storeName}
+                      ${escapeText(w.storeName)}
                     </span>
                   </div>
 
@@ -771,9 +774,9 @@
 
             <!-- CTA Button & Other Stores Accordion -->
             <div class="px-4 pb-4 space-y-2.5">
-              <a href="${w.url}" target="_blank" rel="noopener noreferrer"
+              <a href="${escapeAttr(w.url)}" target="_blank" rel="noopener noreferrer"
                  class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-onaccent font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/15 transition">
-                <span>Купити у ${w.storeName}</span>
+                <span>Купити у ${escapeText(w.storeName)}</span>
                 <span>↗</span>
               </a>
               ${alternativesHtml}
@@ -831,6 +834,7 @@
         }
 
         state.rawItems = items;
+        state.storeStatuses = Array.isArray(payload.stores) ? payload.stores : [];
         state.updatedAt = payload.updatedAt || new Date().toISOString();
         state.isLive = true;
         updateSourceBanner();
@@ -862,7 +866,13 @@
 
       if (state.isLive) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0';
-        label.innerHTML = `Джерело: <strong class="text-emerald-300">Живі дані з n8n Webhook</strong>`;
+        // Воркфлоу повідомляє статус кожного магазину; показуємо, які з них не віддали товарів
+        const missing = state.storeStatuses.filter(st => !(st.count > 0));
+        const total = state.storeStatuses.length;
+        const coverage = missing.length > 0
+          ? ` · дані з ${total - missing.length} із ${total} магазинів <span class="text-amber-300" title="${escapeAttr(missing.map(st => `${st.name}: ${st.note || st.status}`).join('; '))}">(немає: ${missing.map(st => escapeText(st.name)).join(', ')})</span>`
+          : '';
+        label.innerHTML = `Джерело: <strong class="text-emerald-300">Живі дані з n8n Webhook</strong>${coverage}`;
         if (state.updatedAt) {
           const dt = new Date(state.updatedAt);
           updatedText.textContent = `Оновлено: ${dt.toLocaleString('uk-UA')}`;
@@ -876,6 +886,14 @@
         label.innerHTML = `Джерело: <strong class="text-amber-300">Вбудований демо-пресет BF 2026</strong> (підключіть n8n Webhook для живих цін)`;
         updatedText.textContent = '';
       }
+    }
+
+    function escapeText(value) {
+      return String(value ?? '').replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+    }
+
+    function escapeAttr(value) {
+      return escapeText(value).replace(/"/g, '&quot;');
     }
 
     function openWebhookModal() {
