@@ -4,35 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BoardGame BF 2026 UA — Де найдешевші українські настілки</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            graphite: {
-              950: '#090b10',
-              900: '#0f131a',
-              850: '#141923',
-              800: '#1b2230',
-              700: '#273144',
-            }
-          }
-        }
+    // Apply the saved theme before first paint (dark is the default).
+    try {
+      if (localStorage.getItem('bf2026_ua_theme') === 'light') {
+        document.documentElement.classList.remove('dark');
       }
-    }
+    } catch (e) {}
   </script>
+  <!-- build:tailwind -->
   <style>
+    :root {
+      color-scheme: light;
+      --g-950: 243 245 248;
+      --g-900: 255 255 255;
+      --g-850: 248 250 252;
+      --g-800: 230 234 240;
+      --g-700: 213 219 229;
+      --ink: 15 23 42;
+      --t-gray-200: 31 41 55;
+      --t-gray-300: 55 65 81;
+      --t-gray-400: 75 85 99;
+      --t-gray-500: 107 114 128;
+      --t-amber-200: 146 64 14;
+      --t-amber-300: 180 83 9;
+      --t-amber-400: 180 83 9;
+      --t-emerald-200: 6 95 70;
+      --t-emerald-300: 4 120 87;
+      --t-emerald-400: 4 120 87;
+      --t-sky-300: 3 105 161;
+      --t-purple-300: 126 34 206;
+      --t-red-300: 185 28 28;
+      --t-orange-300: 194 65 12;
+      --t-teal-300: 15 118 110;
+      --t-rose-300: 190 18 60;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(15, 23, 42, 0.10);
+      --scroll-thumb-hover: 180 188 202;
+      --winner-glow: rgba(16, 185, 129, 0.16);
+    }
+    .dark {
+      color-scheme: dark;
+      --g-950: 9 11 16;
+      --g-900: 15 19 26;
+      --g-850: 20 25 35;
+      --g-800: 27 34 48;
+      --g-700: 39 49 68;
+      --ink: 255 255 255;
+      --t-gray-200: 229 231 235;
+      --t-gray-300: 209 213 219;
+      --t-gray-400: 156 163 175;
+      --t-gray-500: 107 114 128;
+      --t-amber-200: 253 230 138;
+      --t-amber-300: 252 211 77;
+      --t-amber-400: 251 191 36;
+      --t-emerald-200: 167 243 208;
+      --t-emerald-300: 110 231 183;
+      --t-emerald-400: 52 211 153;
+      --t-sky-300: 125 211 252;
+      --t-purple-300: 216 180 254;
+      --t-red-300: 252 165 165;
+      --t-orange-300: 253 186 116;
+      --t-teal-300: 94 234 212;
+      --t-rose-300: 253 164 175;
+      --card-bg: rgba(20, 25, 35, 0.88);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --scroll-thumb-hover: 59 73 99;
+      --winner-glow: rgba(16, 185, 129, 0.22);
+    }
     body {
-      background-color: #090b10;
-      color: #f3f4f6;
+      background-color: rgb(var(--g-950));
+      color: rgb(var(--t-gray-200));
       font-family: 'Inter', sans-serif;
     }
     ::-webkit-scrollbar {
@@ -40,22 +85,22 @@
       height: 8px;
     }
     ::-webkit-scrollbar-track {
-      background: #0f131a;
+      background: rgb(var(--g-900));
     }
     ::-webkit-scrollbar-thumb {
-      background: #273144;
+      background: rgb(var(--g-700));
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #3b4963;
+      background: rgb(var(--scroll-thumb-hover));
     }
     .glass-card {
-      background: rgba(20, 25, 35, 0.88);
+      background: var(--card-bg);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
     }
     .winner-card-glow {
-      box-shadow: 0 12px 32px -10px rgba(16, 185, 129, 0.22);
+      box-shadow: 0 12px 32px -10px var(--winner-glow);
     }
   </style>
 </head>
@@ -65,7 +110,7 @@
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- Top Status & Webhook Bar -->
-  <div class="bg-gradient-to-r from-amber-500/15 via-graphite-850 to-emerald-500/10 border-b border-white/10 text-xs">
+  <div class="bg-gradient-to-r from-amber-500/15 via-graphite-850 to-emerald-500/10 border-b border-ink/10 text-xs">
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 text-gray-300">
         <span id="data-source-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
@@ -78,7 +123,10 @@
         <button onclick="openWebhookModal()" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/35 font-bold transition">
           <span>⚡ Підключити n8n Webhook</span>
         </button>
-        <button onclick="downloadStandaloneHtml()" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 font-semibold transition" title="Завантажити єдиний index.html для публікації на Netlify Drop або GitHub Pages">
+        <button onclick="toggleTheme()" id="btn-theme" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-ink/10 hover:bg-ink/15 text-ink border border-ink/15 font-semibold transition" title="Перемкнути світлу / темну тему">
+          <span id="btn-theme-label">☀ Світла тема</span>
+        </button>
+        <button onclick="downloadStandaloneHtml()" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-ink/10 hover:bg-ink/15 text-ink border border-ink/15 font-semibold transition" title="Завантажити єдиний index.html для публікації на Netlify Drop або GitHub Pages">
           <span>⬇ Завантажити index.html</span>
         </button>
       </div>
@@ -86,12 +134,12 @@
   </div>
 
   <!-- Header -->
-  <header class="sticky top-0 z-30 bg-graphite-950/92 backdrop-blur-md border-b border-white/10">
+  <header class="sticky top-0 z-30 bg-graphite-950/92 backdrop-blur-md border-b border-ink/10">
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <!-- Brand -->
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-graphite-950 shadow-lg shadow-amber-500/20 shrink-0">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-onaccent shadow-lg shadow-amber-500/20 shrink-0">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <rect x="3" y="3" width="18" height="18" rx="4"></rect>
               <circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"></circle>
@@ -103,7 +151,7 @@
           </div>
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <h1 class="text-lg sm:text-xl font-black tracking-tight text-white">
+              <h1 class="text-lg sm:text-xl font-black tracking-tight text-ink">
                 BoardGame <span class="text-amber-400">BF 2026</span> UA
               </h1>
               <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
@@ -117,20 +165,20 @@
         <!-- Gameland Promo Control Bar -->
         <div class="flex flex-wrap items-center gap-2.5 bg-graphite-900 border border-amber-500/30 rounded-2xl px-3.5 py-2.5">
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded bg-amber-500 text-graphite-950 text-[11px] font-black">Gameland</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500 text-onaccent text-[11px] font-black">Gameland</span>
             <button onclick="copyPromoCode()" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-graphite-950 hover:bg-graphite-800 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold transition" title="Скопіювати промокод blackweek">
               <span>blackweek</span>
               <span class="text-[10px] opacity-75">📋</span>
             </button>
           </div>
 
-          <div class="flex items-center gap-2 pl-1 border-l border-white/10">
+          <div class="flex items-center gap-2 pl-1 border-l border-ink/10">
             <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
               <input type="checkbox" id="toggle-blackweek" checked="" onchange="handleBlackweekToggle(this.checked)" class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
               <span class="text-xs font-semibold text-gray-200">Врахувати код</span>
             </label>
 
-            <div class="flex items-center gap-1 bg-graphite-950 border border-white/10 rounded-lg px-2 py-1">
+            <div class="flex items-center gap-1 bg-graphite-950 border border-ink/10 rounded-lg px-2 py-1">
               <span class="text-[11px] text-gray-400">Знижка від РРЦ:</span>
               <input type="number" id="blackweek-percent" value="15" min="1" max="70" onchange="handleBlackweekPercentChange(this.value)" class="w-11 bg-transparent text-xs font-extrabold text-amber-400 text-right focus:outline-none">
               <span class="text-xs font-bold text-amber-400">%</span>
@@ -149,7 +197,7 @@
       <div class="flex items-start gap-3 text-xs sm:text-sm text-gray-300">
         <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0 mt-0.5">%</span>
         <div>
-          <span class="font-bold text-white">Розумний розрахунок для Gameland:</span>
+          <span class="font-bold text-ink">Розумний розрахунок для Gameland:</span>
           Якщо в каталозі Gameland на коробку вже діє знижка, більша за фіксований промокод <code class="text-amber-300 font-mono">blackweek</code>, система бере вигіднішу ціну каталогу. Якщо промокод дає нижчу ціну від базової — підказує ввести <code class="text-amber-300 font-mono">blackweek</code> у кошику.
         </div>
       </div>
@@ -202,12 +250,12 @@
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35"></path>
           </svg>
-          <input type="text" id="search-input" oninput="renderShowcase()" placeholder="Пошук гри за назвою (напр. Дюна, Арк Нова, Відьмак, Азул)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-graphite-950 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/60 transition">
+          <input type="text" id="search-input" oninput="renderShowcase()" placeholder="Пошук гри за назвою (напр. Дюна, Арк Нова, Відьмак, Азул)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-graphite-950 border border-ink/10 text-sm text-ink placeholder-gray-500 focus:outline-none focus:border-amber-500/60 transition">
         </div>
 
         <!-- Winner Store Filter -->
         <div class="lg:col-span-4">
-          <select id="winner-store-filter" onchange="renderShowcase()" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-white/10 text-sm text-gray-200 focus:outline-none focus:border-amber-500/60 cursor-pointer">
+          <select id="winner-store-filter" onchange="renderShowcase()" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-ink/10 text-sm text-gray-200 focus:outline-none focus:border-amber-500/60 cursor-pointer">
             <option value="all">Найкраща ціна: Усі 6 магазинів</option>
             <option value="lordofboards">Переможець: Lord of Boards</option>
             <option value="desktopgames">Переможець: DesktopGames (Ігромаг)</option>
@@ -220,7 +268,7 @@
 
         <!-- Sort -->
         <div class="lg:col-span-3">
-          <select id="sort-select" onchange="renderShowcase()" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-white/10 text-sm text-amber-300 font-semibold focus:outline-none focus:border-amber-500/60 cursor-pointer">
+          <select id="sort-select" onchange="renderShowcase()" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-ink/10 text-sm text-amber-300 font-semibold focus:outline-none focus:border-amber-500/60 cursor-pointer">
             <option value="discount_desc">Сортування: Найбільший % знижки</option>
             <option value="saving_desc">Сортування: Найбільша економія (грн)</option>
             <option value="price_asc">Сортування: Від найдешевших</option>
@@ -229,9 +277,9 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs text-gray-400">
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-ink/10 text-xs text-gray-400">
         <div class="flex flex-wrap items-center gap-4">
-          <span>Знайдено українських ігор: <strong id="games-count" class="text-white">12</strong></span>
+          <span>Знайдено українських ігор: <strong id="games-count" class="text-ink">12</strong></span>
           <span id="last-updated-text" class="text-gray-500"></span>
         </div>
         <div class="flex items-center gap-2">
@@ -248,7 +296,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-white/10 bg-graphite-950 py-6 mt-12">
+  <footer class="border-t border-ink/10 bg-graphite-950 py-6 mt-12">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
       <div>
         <strong class="text-gray-200">BoardGame BF 2026 UA</strong> — агрегатор найвигідніших цін на українські локалізації настільних ігор.
@@ -261,9 +309,9 @@
 
   <!-- MODAL: N8N WEBHOOK SETTINGS -->
   <div id="webhook-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-graphite-900 border border-white/15 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-      <div class="p-5 border-b border-white/10 flex items-center justify-between">
-        <h3 class="text-lg font-extrabold text-white">⚡ Підключення n8n Webhook</h3>
+    <div class="bg-graphite-900 border border-ink/15 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-ink/10 flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-ink">⚡ Підключення n8n Webhook</h3>
         <button onclick="closeWebhookModal()" class="p-2 rounded-xl bg-graphite-800 hover:bg-graphite-700 text-gray-300">✕</button>
       </div>
       <form onsubmit="saveAndLoadWebhook(event)" class="p-5 space-y-4">
@@ -272,7 +320,7 @@
         </p>
         <div>
           <label class="block text-xs font-bold text-gray-200 mb-1.5">URL вашого n8n Webhook</label>
-          <input type="url" id="webhook-url-input" required="" placeholder="https://n8n.odoo.how/webhook/bf2026-boardgames" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-white/15 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
+          <input type="url" id="webhook-url-input" required="" placeholder="https://n8n.odoo.how/webhook/bf2026-boardgames" class="w-full px-3.5 py-2.5 rounded-xl bg-graphite-950 border border-ink/15 text-sm text-ink placeholder-gray-500 focus:outline-none focus:border-amber-500">
         </div>
         <div class="flex items-center justify-between gap-2 pt-2">
           <button type="button" onclick="disconnectWebhook()" class="px-3.5 py-2 rounded-xl bg-graphite-800 hover:bg-rose-500/20 text-xs font-semibold text-gray-300 hover:text-rose-300 transition">
@@ -282,7 +330,7 @@
             <button type="button" onclick="closeWebhookModal()" class="px-4 py-2 rounded-xl bg-graphite-800 hover:bg-graphite-700 text-xs font-semibold text-gray-300">
               Скасувати
             </button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-graphite-950 font-extrabold text-xs sm:text-sm transition">
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-onaccent font-extrabold text-xs sm:text-sm transition">
               Зберегти та завантажити ціни
             </button>
           </div>
@@ -348,61 +396,61 @@
      */
     const DEMO_FLAT_ITEMS = [
       // Дюна: Імперіум (Gameland blackweek -15% від 2850 = 2423, але в Geekach акція 2190 -> перемагає Geekach!)
-      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Настільна гра Дюна: Імперіум (UA)', price: 2190, oldPrice: 2850, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'https://placehold.co/420x520/1b2230/fbbf24?text=%D0%94%D1%8E%D0%BD%D0%B0%3A+%D0%86%D0%BC%D0%BF%D0%B5%D1%80%D1%96%D1%83%D0%BC+(UA)' },
+      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Настільна гра Дюна: Імперіум (UA)', price: 2190, oldPrice: 2850, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'images/dune.webp' },
       { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Дюна: Імперіум (UA)', price: 2280, oldPrice: 2850, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Дюна: Імперіум (UA)', price: 2490, oldPrice: 2850, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
       { storeKey: 'domigr', storeName: 'Дім Ігор (DomIgr)', supportsBlackweek: false, title: 'Дюна: Імперіум (UA)', price: 2295, oldPrice: 2850, url: 'https://domigr.com.ua/ua/specials/', image: '' },
 
       // Тераформування Марса (Gameland: каталог 2150, blackweek -15% від 2450 = 2083 -> перемагає Gameland з кодом!)
-      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Тераформування Марса (UA)', price: 2150, oldPrice: 2450, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'https://placehold.co/420x520/1e1b2e/f97316?text=%D0%A2%D0%B5%D1%80%D0%B0%D1%84%D0%BE%D1%80%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F+%D0%9C%D0%B0%D1%80%D1%81%D0%B0' },
+      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Тераформування Марса (UA)', price: 2150, oldPrice: 2450, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'images/mars.webp' },
       { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Тераформування Марса (UA)', price: 2120, oldPrice: 2450, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: '' },
       { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Тераформування Марса (UA)', price: 2140, oldPrice: 2450, url: 'https://desktopgames.com.ua/promo/discount/', image: '' },
 
       // Арк Нова (Gameland має велику каталожну знижку 2590 (-24%), що вигідніше за blackweek -15% (2890)!)
-      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Арк Нова (Ark Nova) UA', price: 2590, oldPrice: 3400, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'https://placehold.co/420x520/0f2922/34d399?text=%D0%90%D1%80%D0%BA+%D0%9D%D0%BE%D0%B2%D0%B0+(UA)' },
+      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Арк Нова (Ark Nova) UA', price: 2590, oldPrice: 3400, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'images/arknova.webp' },
       { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Арк Нова (Ark Nova) UA', price: 2690, oldPrice: 3400, url: 'https://desktopgames.com.ua/promo/discount/', image: '' },
       { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Арк Нова (Ark Nova) UA', price: 2750, oldPrice: 3400, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: '' },
 
       // Brass: Бірмінгем
-      { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Brass: Бірмінгем (UA)', price: 2390, oldPrice: 3100, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: 'https://placehold.co/420x520/261c1a/fbbf24?text=Brass%3A+%D0%91%D1%96%D1%80%D0%BC%D1%96%D0%BD%D0%B3%D0%B5%D0%BC' },
+      { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Brass: Бірмінгем (UA)', price: 2390, oldPrice: 3100, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: 'images/brass.webp' },
       { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Brass: Бірмінгем (UA)', price: 2480, oldPrice: 3100, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Brass: Бірмінгем (UA)', price: 2750, oldPrice: 3100, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // Відьмак: Старий світ
-      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Відьмак: Старий світ (UA)', price: 3190, oldPrice: 4200, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'https://placehold.co/420x520/1c1926/e879f9?text=%D0%92%D1%96%D0%B4%D1%8C%D0%BC%D0%B0%D0%BA%3A+%D0%A1%D1%82%D0%B0%D1%80%D0%B8%D0%B9+%D1%81%D0%B2%D1%96%D1%82' },
+      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Відьмак: Старий світ (UA)', price: 3190, oldPrice: 4200, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'images/witcher.webp' },
       { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Відьмак: Старий світ (UA)', price: 3360, oldPrice: 4200, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Відьмак: Старий світ (UA)', price: 3690, oldPrice: 4200, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // Крила (Wingspan)
-      { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Крила (Wingspan) UA', price: 1790, oldPrice: 2350, url: 'https://desktopgames.com.ua/promo/discount/', image: 'https://placehold.co/420x520/132634/38bdf8?text=%D0%9A%D1%80%D0%B8%D0%BB%D0%B0+(Wingspan)' },
+      { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Крила (Wingspan) UA', price: 1790, oldPrice: 2350, url: 'https://desktopgames.com.ua/promo/discount/', image: 'images/wingspan.webp' },
       { storeKey: 'domigr', storeName: 'Дім Ігор (DomIgr)', supportsBlackweek: false, title: 'Крила (Wingspan) UA', price: 1840, oldPrice: 2350, url: 'https://domigr.com.ua/ua/specials/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Крила (Wingspan) UA', price: 2050, oldPrice: 2350, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // Коса (Scythe)
-      { storeKey: 'domigr', storeName: 'Дім Ігор (DomIgr)', supportsBlackweek: false, title: 'Коса (Scythe) UA', price: 2590, oldPrice: 3350, url: 'https://domigr.com.ua/ua/specials/', image: 'https://placehold.co/420x520/262118/facc15?text=%D0%9A%D0%BE%D1%81%D0%B0+(Scythe)' },
+      { storeKey: 'domigr', storeName: 'Дім Ігор (DomIgr)', supportsBlackweek: false, title: 'Коса (Scythe) UA', price: 2590, oldPrice: 3350, url: 'https://domigr.com.ua/ua/specials/', image: 'images/scythe.webp' },
       { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Коса (Scythe) UA', price: 2650, oldPrice: 3350, url: 'https://desktopgames.com.ua/promo/discount/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Коса (Scythe) UA', price: 2950, oldPrice: 3350, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // 7 Чудес: Дуель (Gameland з blackweek -15% від 1290 = 1097, але в Хід Конем 970 -> перемагає Хід Конем!)
-      { storeKey: 'hidkonem', storeName: 'Хід Конем', supportsBlackweek: false, title: '7 Чудес: Дуель (UA)', price: 970, oldPrice: 1290, url: 'https://hidkonem.com.ua/specials.php', image: 'https://placehold.co/420x520/16282a/2dd4bf?text=7+%D0%A7%D1%83%D0%B4%D0%B5%D1%81%3A+%D0%94%D1%83%D0%B5%D0%BB%D1%8C' },
+      { storeKey: 'hidkonem', storeName: 'Хід Конем', supportsBlackweek: false, title: '7 Чудес: Дуель (UA)', price: 970, oldPrice: 1290, url: 'https://hidkonem.com.ua/specials.php', image: 'images/duel.webp' },
       { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: '7 Чудес: Дуель (UA)', price: 990, oldPrice: 1290, url: 'https://desktopgames.com.ua/promo/discount/', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: '7 Чудес: Дуель (UA)', price: 1120, oldPrice: 1290, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // Евердел (Everdell) - Gameland blackweek -15% від 2950 = 2508, але в каталозі Gameland 2240 (-24%)!
-      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Евердел (Everdell) UA', price: 2240, oldPrice: 2950, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'https://placehold.co/420x520/14281d/4ade80?text=%D0%95%D0%B2%D0%B5%D1%80%D0%B4%D0%B5%D0%BB+(Everdell)' },
+      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Евердел (Everdell) UA', price: 2240, oldPrice: 2950, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'images/everdell.webp' },
       { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Евердел (Everdell) UA', price: 2350, oldPrice: 2950, url: 'https://desktopgames.com.ua/promo/discount/', image: '' },
 
       // Азул (Azul)
-      { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Азул (Azul) UA', price: 1240, oldPrice: 1650, url: 'https://desktopgames.com.ua/promo/discount/', image: 'https://placehold.co/420x520/17253b/60a5fa?text=%D0%90%D0%B7%D1%83%D0%BB+(Azul)' },
+      { storeKey: 'desktopgames', storeName: 'DesktopGames (Ігромаг)', supportsBlackweek: false, title: 'Азул (Azul) UA', price: 1240, oldPrice: 1650, url: 'https://desktopgames.com.ua/promo/discount/', image: 'images/azul.webp' },
       { storeKey: 'hidkonem', storeName: 'Хід Конем', supportsBlackweek: false, title: 'Азул (Azul) UA', price: 1260, oldPrice: 1650, url: 'https://hidkonem.com.ua/specials.php', image: '' },
       { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Азул (Azul) UA', price: 1450, oldPrice: 1650, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: '' },
 
       // Немезида (Nemesis)
-      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Немезида (Nemesis) UA', price: 4350, oldPrice: 5600, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'https://placehold.co/420x520/1e1624/f43f5e?text=%D0%9D%D0%B5%D0%BC%D0%B5%D0%B7%D0%B8%D0%B4%D0%B0+(Nemesis)' },
+      { storeKey: 'geekach', storeName: 'Geekach Shop', supportsBlackweek: false, title: 'Немезида (Nemesis) UA', price: 4350, oldPrice: 5600, url: 'https://geekach.com.ua/rozprodazh-nastilnykh-ihor/', image: 'images/nemesis.webp' },
       { storeKey: 'lordofboards', storeName: 'Lord of Boards', supportsBlackweek: false, title: 'Немезида (Nemesis) UA', price: 4480, oldPrice: 5600, url: 'https://lordofboards.com.ua/chorna-piatnytsia-2026/', image: '' },
 
       // Кодові імена (Gameland: каталог 760, blackweek -15% від 890 = 757 -> виграє Gameland з промокодом!)
-      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Кодові імена (Codenames) UA', price: 760, oldPrice: 890, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'https://placehold.co/420x520/291d18/fb923c?text=%D0%9A%D0%BE%D0%B4%D0%BE%D0%B2%D1%96+%D1%96%D0%BC%D0%B5%D0%BD%D0%B0' },
+      { storeKey: 'gameland', storeName: 'Gameland', supportsBlackweek: true, title: 'Кодові імена (Codenames) UA', price: 760, oldPrice: 890, url: 'https://gameland.com.ua/maksymalni-znyzhky/', image: 'images/codenames.webp' },
       { storeKey: 'domigr', storeName: 'Дім Ігор (DomIgr)', supportsBlackweek: false, title: 'Кодові імена (Codenames) UA', price: 775, oldPrice: 890, url: 'https://domigr.com.ua/ua/specials/', image: '' }
     ];
 
@@ -626,7 +674,7 @@
         grid.innerHTML = `
           <div class="col-span-full glass-card rounded-2xl p-12 text-center space-y-3">
             <div class="text-4xl">🎲</div>
-            <h3 class="text-lg font-bold text-white">Ігор за таким запитом не знайдено</h3>
+            <h3 class="text-lg font-bold text-ink">Ігор за таким запитом не знайдено</h3>
             <p class="text-xs sm:text-sm text-gray-400">Спробуйте очистити рядок пошуку або змінити фільтр магазину-переможця.</p>
           </div>
         `;
@@ -641,16 +689,16 @@
         const accordionId = `alt-stores-${idx}`;
 
         const alternativesHtml = game.alternatives.length > 0 ? `
-          <div class="pt-2 border-t border-white/10">
+          <div class="pt-2 border-t border-ink/10">
             <button type="button" onclick="toggleAlternatives('${accordionId}')"
-              class="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white py-1 transition">
+              class="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-ink py-1 transition">
               <span>Інші магазини (${game.alternatives.length})</span>
               <span id="${accordionId}-icon" class="transition-transform">▾</span>
             </button>
             <div id="${accordionId}" class="hidden space-y-1.5 pt-2">
               ${game.alternatives.map(alt => `
                 <a href="${alt.url}" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-graphite-950/80 hover:bg-graphite-800 border border-white/5 text-xs transition">
+                   class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-graphite-950/80 hover:bg-graphite-800 border border-ink/5 text-xs transition">
                   <span class="truncate text-gray-300 pr-2">${alt.storeName}</span>
                   <span class="shrink-0 font-bold text-gray-200">${formatUah(alt.finalPrice)} <span class="text-[10px] text-gray-500">(-${alt.discountPercent}%)</span></span>
                 </a>
@@ -660,7 +708,7 @@
         ` : '';
 
         return `
-          <article class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between border border-white/10 hover:border-emerald-500/45 winner-card-glow transition group">
+          <article class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between border border-ink/10 hover:border-emerald-500/45 winner-card-glow transition group">
             <div>
               <!-- Box Art Image Header -->
               <div class="relative aspect-[4/4.3] bg-graphite-950 overflow-hidden flex items-center justify-center p-4">
@@ -672,7 +720,7 @@
 
                 <!-- Discount Badge -->
                 ${w.discountPercent > 0 ? `
-                  <div class="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-emerald-500 text-graphite-950 font-black text-xs shadow-lg">
+                  <div class="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-emerald-500 text-onaccent font-black text-xs shadow-lg">
                     -${w.discountPercent}%
                   </div>
                 ` : ''}
@@ -685,7 +733,7 @@
 
               <!-- Game Title & Winner Block -->
               <div class="p-4 space-y-3">
-                <h2 class="text-base font-extrabold text-white leading-snug line-clamp-2 min-h-[2.75rem]" title="${game.displayTitle}">
+                <h2 class="text-base font-extrabold text-ink leading-snug line-clamp-2 min-h-[2.75rem]" title="${game.displayTitle}">
                   ${game.displayTitle}
                 </h2>
 
@@ -702,7 +750,7 @@
 
                   <div class="flex items-baseline justify-between gap-2 pt-0.5">
                     <div class="flex items-baseline gap-2">
-                      <span class="text-2xl font-black text-white">${formatUah(w.finalPrice)}</span>
+                      <span class="text-2xl font-black text-ink">${formatUah(w.finalPrice)}</span>
                       ${w.baseRrp > w.finalPrice ? `<span class="text-xs text-gray-400 line-through">${formatUah(w.baseRrp)}</span>` : ''}
                     </div>
                     ${w.savingUah > 0 ? `
@@ -724,7 +772,7 @@
             <!-- CTA Button & Other Stores Accordion -->
             <div class="px-4 pb-4 space-y-2.5">
               <a href="${w.url}" target="_blank" rel="noopener noreferrer"
-                 class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-graphite-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/15 transition">
+                 class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-onaccent font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/15 transition">
                 <span>Купити у ${w.storeName}</span>
                 <span>↗</span>
               </a>
@@ -766,7 +814,16 @@
       try {
         const res = await fetch(state.webhookUrl, { method: 'GET' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const payload = await res.json();
+        const bodyText = await res.text();
+        if (!bodyText.trim()) {
+          throw new Error('Webhook повернув порожню відповідь (HTTP 200 без тіла) — перевірте останню ноду n8n воркфлоу');
+        }
+        let payload;
+        try {
+          payload = JSON.parse(bodyText);
+        } catch (parseErr) {
+          throw new Error('Webhook повернув не JSON');
+        }
 
         const items = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
         if (items.length === 0) {
@@ -902,7 +959,11 @@
           applyBlackweek: state.applyBlackweek
         });
       }
-      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      if (/^https?:/.test(location.protocol)) {
+        // Вбудовані обкладинки лежать поруч із сайтом — у завантаженому файлі робимо шляхи абсолютними
+        fullHtml = fullHtml.split("image: 'images/").join("image: '" + new URL('images/', location.href).href);
+      }
       const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -915,12 +976,25 @@
       showToast('Файл index.html завантажено! Можете перетягнути його на Netlify Drop.');
     }
 
+    const THEME_KEY = 'bf2026_ua_theme';
+
+    function updateThemeButton() {
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('btn-theme-label').textContent = isDark ? '☀ Світла тема' : '🌙 Темна тема';
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch (e) {}
+      updateThemeButton();
+    }
+
     function showToast(msg, type = 'ok') {
       const container = document.getElementById('toast-container');
       const el = document.createElement('div');
       const style = type === 'warn'
-        ? 'bg-amber-950/95 border-amber-500/50 text-amber-200'
-        : 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200';
+        ? 'bg-[#451a03]/95 border-amber-500/50 text-[#fde68a]'
+        : 'bg-[#022c22]/95 border-emerald-500/50 text-[#a7f3d0]';
       el.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs sm:text-sm font-semibold transition-all duration-300 ${style}`;
       el.textContent = msg;
       container.appendChild(el);
@@ -935,6 +1009,7 @@
      */
     window.addEventListener('DOMContentLoaded', () => {
       loadInitialState();
+      updateThemeButton();
       renderStorePills();
       if (state.webhookUrl) {
         fetchLiveWebhookData(false);

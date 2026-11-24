@@ -1,25 +1,24 @@
-// Builds dist/index.html: a single self-contained file with Tailwind compiled
-// to static CSS in place of the cdn.tailwindcss.com runtime script.
+// Builds dist/: index.html with Tailwind compiled to static CSS inlined at the
+// <!-- build:tailwind --> marker, plus the bundled cover images.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
-const CDN_BLOCK = /[ \t]*<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>\n/;
-const CONFIG_BLOCK = /[ \t]*<script>\s*tailwind\.config = [\s\S]*?<\/script>\n/;
+const MARKER = '<!-- build:tailwind -->';
 
 const src = readFileSync('src/index.html', 'utf8');
-if (!CDN_BLOCK.test(src) || !CONFIG_BLOCK.test(src)) {
-  throw new Error('Tailwind CDN script or inline tailwind.config not found in src/index.html');
+if (!src.includes(MARKER)) {
+  throw new Error(`${MARKER} not found in src/index.html`);
 }
 
-mkdirSync('dist', { recursive: true });
 const css = execFileSync(
   'npx',
   ['tailwindcss', '-c', 'tailwind.config.js', '--minify'],
   { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] },
 );
 
-const out = src
-  .replace(CDN_BLOCK, '')
-  .replace(CONFIG_BLOCK, () => `  <style>${css.trim()}</style>\n`);
+rmSync('dist', { recursive: true, force: true });
+mkdirSync('dist', { recursive: true });
+const out = src.replace(MARKER, () => `<style>${css.trim()}</style>`);
 writeFileSync('dist/index.html', out);
+cpSync('src/images', 'dist/images', { recursive: true });
 console.log(`dist/index.html: ${out.length} bytes (css ${css.length})`);
