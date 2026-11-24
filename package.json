@@ -1,0 +1,10 @@
+{
+  "name": "boardgame-bf-2026",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
